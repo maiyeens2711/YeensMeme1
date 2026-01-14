@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Media Pro - Chu Nguyên An</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #ff4081;
+            --primary-hover: #f50057;
+            --bg-gradient: linear-gradient(135deg, #fce4ec 0%, #f3e5f5 100%);
+            --glass: rgba(255, 255, 255, 0.85);
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url("tai-bo-hinh-nen-may-tinh-11.png");
+            pointer-events: none;
+            opacity: 0.4;
+            z-index: -1;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        /* LOGIN PAGE */
+        #login-page {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            width: 350px;
+            margin: 100px auto;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: popIn 0.6s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        }
+
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* HOME PAGE & TABBAR */
+        #home-page { display: none; margin-top: 10px; }
+
+        .tab-bar {
+            display: flex;
+            background: var(--glass);
+            backdrop-filter: blur(15px);
+            position: sticky;
+            top: 15px;
+            z-index: 100;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            padding: 5px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+
+        .tab-item {
+            flex: 1;
+            padding: 10px 5px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 12px;
+            font-weight: 600;
+            color: #777;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tab-item.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255,64,129,0.3);
+        }
+
+        .content-section {
+            display: none;
+            animation: fadeInSection 0.4s ease;
+        }
+
+        .content-section.active { display: block; }
+
+        @keyframes fadeInSection { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* UI COMPONENTS */
+        .section-card {
+            background: var(--glass);
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 12px;
+            font-size: 14px;
+            outline: none;
+            background: white;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        button:hover { background: var(--primary-hover); transform: scale(1.02); }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 15px;
+        }
+
+        .gift-card {
+            background: white;
+            padding: 40px 10px;
+            border-radius: 15px;
+            border: 2px dashed var(--primary);
+            cursor: pointer;
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary);
+            transition: 0.3s;
+        }
+
+        .note {
+            padding: 15px;
+            border-radius: 15px;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            font-size: 14px;
+        }
+        .note.pink { background: #ffd1dc; }
+        .note.blue { background: #d1e8ff; }
+        .note.green { background: #d1ffdb; }
+        .note.yellow { background: #fff9d1; }
+        .del-btn { position: absolute; top: 8px; right: 8px; background: none; border: none; cursor: pointer; color: #666; font-weight: bold; }
+
+        .media-item {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            height: 120px;
+            background: #000;
+        }
+        .media-item img, .media-item video { width: 100%; height: 100%; object-fit: cover; cursor: pointer; }
+        .del-media { position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.8); width: 24px; height: 24px; border-radius: 50%; padding: 0; font-size: 10px; }
+
+        /* OVERLAYS */
+        .overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.9); z-index: 999;
+            flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        #popup-content { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; }
+        #viewer img, #viewer video { max-width: 95%; max-height: 80vh; border-radius: 10px; }
+
+        /* SNAKE CONTROLS FOR MOBILE */
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            width: 150px;
+            margin: 20px auto 0;
+        }
+        .controls button { padding: 15px; background: #555; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="login-page">
+        <h2 style="color:var(--primary)">HỆ THỐNG RIÊNG</h2>
+        <input id="user" placeholder="Tên đăng nhập">
+        <input id="pass" type="password" placeholder="Mật khẩu">
+        <button onclick="checkLogin()" style="width: 100%; margin-top: 10px;">VÀO HỆ THỐNG</button>
+        <p id="error" style="color:red; display:none; margin-top:10px; font-size:13px;">Sai thông tin!</p>
+    </div>
+
+    <div id="home-page">
+        <div class="section-card" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 10px 20px;">
+            <h3 style="margin:0; font-size: 16px;">Chào, <span id="display-name" style="color:var(--primary)"></span>!</h3>
+            <button onclick="location.reload()" style="padding: 6px 12px; font-size: 11px; background: #555;">Thoát</button>
+        </div>
+
+        <div class="tab-bar">
+            <div class="tab-item active" onclick="switchTab(event, 'section-gift')">
+                <span>🎁</span><span style="font-size: 11px;">Thiệp</span>
+            </div>
+            <div class="tab-item" onclick="switchTab(event, 'section-note')">
+                <span>📝</span><span style="font-size: 11px;">Ghi chú</span>
+            </div>
+            <div class="tab-item" onclick="switchTab(event, 'section-album')">
+                <span>🖼️</span><span style="font-size: 11px;">Album</span>
+            </div>
+            <div class="tab-item" onclick="switchTab(event, 'section-game'); startSnake();">
+                <span>🐍</span><span style="font-size: 11px;">Rắn</span>
+            </div>
+        </div>
+
+        <div id="section-gift" class="content-section active">
+            <div class="section-card">
+                <h3>Thiệp của bạn</h3>
+                <div id="card-container" class="grid"></div>
+            </div>
+        </div>
+
+        <div id="section-note" class="content-section">
+            <div class="section-card">
+                <h3>Ghi chú riêng tư</h3>
+                <textarea id="note-input" placeholder="Viết gì đó..." rows="3"></textarea>
+                <div style="display: flex; gap: 8px;">
+                    <select id="note-color" style="flex: 1;">
+                        <option value="pink">Màu Hồng</option>
+                        <option value="blue">Màu Xanh</option>
+                        <option value="green">Màu Lục</option>
+                        <option value="yellow">Màu Vàng</option>
+                    </select>
+                    <button onclick="addNote()">Lưu</button>
+                </div>
+                <div id="note-list" class="grid" style="margin-top: 20px;"></div>
+            </div>
+        </div>
+
+        <div id="section-album" class="content-section">
+            <div class="section-card">
+                <h3>Album Kỷ Niệm</h3>
+                <div style="background: rgba(0,0,0,0.04); padding: 15px; border-radius: 15px; margin-bottom: 15px;">
+                    <input type="file" id="media-input" accept="image/*,video/*">
+                    <input id="album-input" placeholder="Tên album...">
+                    <button onclick="addMedia()" style="width: 100%;">Tải lên</button>
+                </div>
+                <select id="album-filter" onchange="loadMedia()" style="margin-bottom: 15px;"></select>
+                <div id="media-list" class="grid"></div>
+            </div>
+        </div>
+
+        <div id="section-game" class="content-section">
+            <div class="section-card" style="text-align:center">
+                <h3>🐍 Rắn săn mồi</h3>
+                <canvas id="snakeCanvas" width="280" height="280" style="background:#111; border-radius:15px; margin:0 auto; display:block;"></canvas>
+                
+                <div class="controls">
+                    <div></div><button onclick="changeDir('UP')">↑</button><div></div>
+                    <button onclick="changeDir('LEFT')">←</button>
+                    <button onclick="changeDir('DOWN')">↓</button>
+                    <button onclick="changeDir('RIGHT')">→</button>
+                </div>
+                <button onclick="startSnake()" style="margin-top: 15px; width: 100%;">Chơi lại</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="popup-overlay" class="overlay" onclick="closePopup()">
+    <div id="popup-content" onclick="event.stopPropagation()">
+        <h2 id="msg" style="color: var(--primary);"></h2>
+        <img id="gif" style="width: 100%; border-radius: 10px; margin: 15px 0;">
+        <audio id="audio" controls style="width: 100%;"></audio>
+        <br><br>
+        <button onclick="closePopup()">Đóng lại</button>
+    </div>
+</div>
+
+<div id="viewer" class="overlay" onclick="closeViewer()">
+    <button style="position: absolute; top: 20px; right: 20px;">Đóng</button>
+    <img id="viewer-img" style="display:none">
+    <video id="viewer-video" controls style="display:none"></video>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+// DỮ LIỆU THIỆP (Bạn có thể đổi link assets của mình)
+const cards = [{ msg: "Chào ngày mới tuyệt vời!", gif: "1.gif", music: "1.mp3" }];
+
+// ĐĂNG NHẬP
+function checkLogin() {
+    const userVal = $("user").value.toLowerCase();
+    const passVal = $("pass").value;
+    if ((userVal === "chu nguyen an" || userVal === "chu nguyên an") && passVal === "27112005") {
+        $("login-page").style.display = "none";
+        $("home-page").style.display = "block";
+        $("display-name").innerText = "Chu Nguyên An";
+        renderCards();
+        loadNotes();
+        loadMedia();
+    } else {
+        $("error").style.display = "block";
+    }
+}
+
+// CHUYỂN TAB
+function switchTab(e, sectionId) {
+    document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+    $(sectionId).classList.add('active');
+    e.currentTarget.classList.add('active');
+    if(sectionId !== 'section-game') clearInterval(gameLoop);
+}
+
+// RẮN SĂN MỒI
+let canvas = $("snakeCanvas");
+let ctx = canvas.getContext("2d");
+let box = 14; 
+let snake, food, dir, gameLoop;
+
+function startSnake() {
+    snake = [{ x: 10 * box, y: 10 * box }];
+    food = { x: Math.floor(Math.random() * 20) * box, y: Math.floor(Math.random() * 20) * box };
+    dir = "RIGHT";
+    clearInterval(gameLoop);
+    gameLoop = setInterval(drawSnake, 150);
+}
+
+function changeDir(newDir) {
+    if (newDir === "LEFT" && dir !== "RIGHT") dir = "LEFT";
+    if (newDir === "UP" && dir !== "DOWN") dir = "UP";
+    if (newDir === "RIGHT" && dir !== "LEFT") dir = "RIGHT";
+    if (newDir === "DOWN" && dir !== "UP") dir = "DOWN";
+}
+
+document.addEventListener("keydown", e => {
+    if(e.key.includes("Arrow")) e.preventDefault();
+    if (e.key === "ArrowLeft") changeDir("LEFT");
+    if (e.key === "ArrowUp") changeDir("UP");
+    if (e.key === "ArrowRight") changeDir("RIGHT");
+    if (e.key === "ArrowDown") changeDir("DOWN");
+});
+
+function drawSnake() {
+    ctx.fillStyle = "#111";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = "#ff4081";
+    ctx.fillRect(food.x, food.y, box, box);
+
+    for (let i = 0; i < snake.length; i++) {
+        ctx.fillStyle = i === 0 ? "#fff" : "#f8bbd0";
+        ctx.fillRect(snake[i].x, snake[i].y, box, box);
+    }
+
+    let head = { ...snake[0] };
+    if (dir === "LEFT") head.x -= box;
+    if (dir === "UP") head.y -= box;
+    if (dir === "RIGHT") head.x += box;
+    if (dir === "DOWN") head.y += box;
+
+    if (head.x < 0 || head.y < 0 || head.x >= canvas.width || head.y >= canvas.height || snake.some(s => s.x === head.x && s.y === head.y)) {
+        clearInterval(gameLoop);
+        alert("Game Over!");
+        return;
+    }
+
+    if (head.x === food.x && head.y === food.y) {
+        food = { x: Math.floor(Math.random() * 20) * box, y: Math.floor(Math.random() * 20) * box };
+    } else {
+        snake.pop();
+    }
+    snake.unshift(head);
+}
+
+// CÁC HÀM KHÁC (THIỆP, GHI CHÚ, MEDIA)
+function renderCards() {
+    const cont = $("card-container"); cont.innerHTML = "";
+    cards.forEach(c => {
+        const d = document.createElement("div");
+        d.className = "gift-card"; d.innerHTML = "🎁 MỞ THIỆP";
+        d.onclick = () => {
+            $("msg").innerText = c.msg;
+            $("gif").src = "assets/" + c.gif;
+            $("audio").src = "assets/" + c.music;
+            $("popup-overlay").style.display = "flex";
+            confetti({ particleCount: 150, spread: 70 });
+        };
+        cont.appendChild(d);
+    });
+}
+
+function closePopup() { $("popup-overlay").style.display = "none"; $("audio").pause(); }
+
+function addNote() {
+    const val = $("note-input").value.trim(); if (!val) return;
+    const notes = JSON.parse(localStorage.getItem("notes_pro") || "[]");
+    notes.push({ text: val, color: $("note-color").value, time: new Date().toLocaleString() });
+    localStorage.setItem("notes_pro", JSON.stringify(notes));
+    $("note-input").value = ""; loadNotes();
+}
+
+function loadNotes() {
+    const notes = JSON.parse(localStorage.getItem("notes_pro") || "[]");
+    const list = $("note-list"); list.innerHTML = "";
+    notes.forEach((n, i) => {
+        list.innerHTML += `<div class="note ${n.color}"><button class="del-btn" onclick="delNote(${i})">✕</button><p>${n.text}</p><small style="opacity:0.6;font-size:10px">${n.time}</small></div>`;
+    });
+}
+
+function delNote(i) {
+    const notes = JSON.parse(localStorage.getItem("notes_pro"));
+    notes.splice(i, 1);
+    localStorage.setItem("notes_pro", JSON.stringify(notes));
+    loadNotes();
+}
+
+function addMedia() {
+    const file = $("media-input").files[0];
+    const album = $("album-input").value.trim() || "Chung";
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const medias = JSON.parse(localStorage.getItem("medias_pro") || "[]");
+        medias.push({ type: file.type.startsWith("video") ? "video" : "image", src: e.target.result, album: album });
+        localStorage.setItem("medias_pro", JSON.stringify(medias));
+        $("media-input").value = ""; loadMedia();
+    };
+    reader.readAsDataURL(file);
+}
+
+function loadMedia() {
+    const medias = JSON.parse(localStorage.getItem("medias_pro") || "[]");
+    const filter = $("album-filter");
+    const curF = filter.value || "all";
+    const albums = ["all", ...new Set(medias.map(m => m.album))];
+    filter.innerHTML = albums.map(a => `<option value="${a}">${a === 'all' ? 'Tất cả Album' : a}</option>`).join("");
+    filter.value = curF;
+    const list = $("media-list"); list.innerHTML = "";
+    medias.forEach((m, i) => {
+        if (curF !== "all" && m.album !== curF) return;
+        const div = document.createElement("div");
+        div.className = "media-item";
+        div.innerHTML = (m.type === "image" ? `<img src="${m.src}" onclick="openViewer('img','${m.src}')">` : `<video src="${m.src}" onclick="openViewer('vid','${m.src}')"></video>`) + `<button class="del-media" onclick="delMedia(${i})">✕</button>`;
+        list.appendChild(div);
+    });
+}
+
+function delMedia(i) { if(confirm("Xóa media này?")) { const m = JSON.parse(localStorage.getItem("medias_pro")); m.splice(i, 1); localStorage.setItem("medias_pro", JSON.stringify(m)); loadMedia(); } }
+
+function openViewer(t, s) {
+    $("viewer").style.display = "flex";
+    if (t === 'img') { $("viewer-img").src = s; $("viewer-img").style.display = "block"; $("viewer-video").style.display = "none"; }
+    else { $("viewer-video").src = s; $("viewer-video").style.display = "block"; $("viewer-img").style.display = "none"; $("viewer-video").play(); }
+}
+
+function closeViewer() { $("viewer").style.display = "none"; $("viewer-video").pause(); }
+</script>
+
+</body>
+</html>
