@@ -204,6 +204,30 @@
             margin: 20px auto 0;
         }
         .controls button { padding: 15px; background: #555; }
+        /* ===== SUDOKU ===== */
+        .sudoku-board{
+            display:grid;
+            grid-template-columns:repeat(9,1fr);
+            max-width:270px;
+            margin:0 auto;
+            border:2px solid #333;
+        }
+        .sudoku-cell{
+            width:30px;
+            height:30px;
+            text-align:center;
+            font-size:16px;
+            border:1px solid #bbb;
+            outline:none;
+        }
+        .sudoku-cell.fixed{
+            background:#eee;
+            font-weight:bold;
+        }
+        .sudoku-cell:focus{
+            background:#ffd1dc;
+        }
+
     </style>
 </head>
 <body>
@@ -237,6 +261,9 @@
             </div>
             <div class="tab-item" onclick="switchTab(event, 'section-game'); startSnake();">
                 <span>🐍</span><span style="font-size: 11px;">Rắn</span>
+            </div>
+            <div class="tab-item" onclick="switchTab(event, 'section-sudoku')">
+                <span>🧩</span><span style="font-size: 11px;">Sudoku</span>
             </div>
         </div>
 
@@ -291,6 +318,16 @@
                 <button onclick="startSnake()" style="margin-top: 15px; width: 100%;">Chơi lại</button>
             </div>
         </div>
+        <div id="section-sudoku" class="content-section">
+    <div class="section-card" style="text-align:center">
+        <h3>🧩 Sudoku</h3>
+        <div id="sudoku-board" class="sudoku-board"></div>
+        <button onclick="sudokuNewGame()" style="width:100%;margin-top:15px">
+            Ván mới
+        </button>
+    </div>
+</div>
+
     </div>
 </div>
 
@@ -484,6 +521,80 @@ function openViewer(t, s) {
 }
 
 function closeViewer() { $("viewer").style.display = "none"; $("viewer-video").pause(); }
+    /* ===== SUDOKU GAME ===== */
+let sudokuSolution=[], sudokuPuzzle=[];
+const sudokuBoard=document.getElementById("sudoku-board");
+
+function sudokuNewGame(){
+    sudokuSolution = sudokuGenerate();
+    sudokuPuzzle = sudokuSolution.map(r=>r.slice());
+    sudokuRemove(sudokuPuzzle,45);
+    sudokuRender();
+}
+
+function sudokuRender(){
+    sudokuBoard.innerHTML="";
+    sudokuPuzzle.forEach((row,r)=>{
+        row.forEach((v,c)=>{
+            const i=document.createElement("input");
+            i.type="text"; i.maxLength=1;
+            i.className="sudoku-cell";
+            if(v){
+                i.value=v;
+                i.disabled=true;
+                i.classList.add("fixed");
+            }else{
+                i.oninput=()=>{
+                    const n=+i.value;
+                    if(n<1||n>9||!sudokuValid(sudokuPuzzle,r,c,n)){
+                        i.value="";
+                    }else sudokuPuzzle[r][c]=n;
+                };
+            }
+            sudokuBoard.appendChild(i);
+        });
+    });
+}
+
+function sudokuGenerate(){
+    const g=Array.from({length:9},()=>Array(9).fill(0));
+    sudokuSolve(g);
+    return g;
+}
+
+function sudokuSolve(g){
+    for(let r=0;r<9;r++)for(let c=0;c<9;c++){
+        if(!g[r][c]){
+            for(let n of shuffle([1,2,3,4,5,6,7,8,9])){
+                if(sudokuValid(g,r,c,n)){
+                    g[r][c]=n;
+                    if(sudokuSolve(g)) return true;
+                    g[r][c]=0;
+                }
+            }
+            return false;
+        }
+    }
+    return true;
+}
+
+function sudokuValid(g,r,c,n){
+    for(let i=0;i<9;i++)
+        if(g[r][i]==n||g[i][c]==n) return false;
+    const br=Math.floor(r/3)*3, bc=Math.floor(c/3)*3;
+    for(let i=br;i<br+3;i++)
+        for(let j=bc;j<bc+3;j++)
+            if(g[i][j]==n) return false;
+    return true;
+}
+
+function sudokuRemove(g,c){
+    while(c){
+        let r=Math.random()*9|0, col=Math.random()*9|0;
+        if(g[r][col]){ g[r][col]=0; c--; }
+    }
+}
+
 </script>
 
 </body>
